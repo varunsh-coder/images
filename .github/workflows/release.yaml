@@ -6,8 +6,6 @@ on:
       - README.md
       - withdrawn-images.txt
       - withdrawn-repos.txt
-  schedule:
-    - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
       only:
@@ -71,7 +69,7 @@ jobs:
       matrix: "${{steps.shard.outputs.matrix}}"
 
   build:
-    runs-on: ubuntu-latest-64-cores
+    runs-on: ubuntu-latest
     needs: shard
     strategy:
       fail-fast: false
@@ -150,21 +148,7 @@ jobs:
           name: "mega-module-${{ matrix.shard.index }}-imagetest-logs"
           path: imagetest-logs
 
-      - uses: rtCamp/action-slack-notify@4e5fb42d249be6a45a298f3c9543b111b02f7907 # v2.3.0
-        if: ${{ failure() && github.event_name == 'schedule' }}
-        env:
-          SLACK_ICON: http://github.com/chainguard-dev.png?size=48
-          SLACK_USERNAME: guardian
-          SLACK_WEBHOOK: ${{ secrets.DISTROLESS_SLACK_WEBHOOK }}
-          SLACK_MSG_AUTHOR: chainguardian
-          SLACK_CHANNEL: chainguard-images-alerts
-          SLACK_COLOR: "#8E1600"
-          MSG_MINIMAL: "true"
-          SLACK_TITLE: "[images] release failed (shard ${{ matrix.shard.index }} of ${{ env.TOTAL_SHARDS }})"
-          SLACK_MESSAGE: |
-            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-            ${{ steps.tf-diag.outputs.errors }}
+      
 
   summary:
     name: "Build Summary"
